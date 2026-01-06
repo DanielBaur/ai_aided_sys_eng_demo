@@ -46,12 +46,10 @@ class TrafficLightMachine(StateMachine):
     timer_2s = yellow.to(red)
 
     def __init__(self) -> None:
-        super().__init__()
         self._timer: Optional[threading.Timer] = None
         self._lock = threading.Lock()
         setup_gpio()
-        self._apply_outputs_for_state(self.current_state.id)
-        self._schedule_next()
+        super().__init__()  # This will trigger on_enter_red() which handles setup
 
     def _clear_timer(self) -> None:
         with self._lock:
