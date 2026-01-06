@@ -70,15 +70,6 @@ class TrafficLightMachine(StateMachine):
             self._timer = timer
         timer.start()
 
-    def _schedule_next(self) -> None:
-        """Schedule the appropriate timer based on the current state."""
-        if self.is_red:
-            self._schedule(5.0, self.timer_5s)
-        elif self.is_green:
-            self._schedule(5.0, self.timer_5s)
-        elif self.is_yellow:
-            self._schedule(2.0, self.timer_2s)
-
     def _apply_outputs_for_state(self, state_id: str) -> None:
         if state_id == "Red":
             set_lights(True, False, False)
@@ -90,15 +81,15 @@ class TrafficLightMachine(StateMachine):
     # State entry hooks
     def on_enter_red(self) -> None:
         self._apply_outputs_for_state("Red")
-        self._schedule_next()
+        self._schedule(5.0, self.timer_5s)
 
     def on_enter_green(self) -> None:
         self._apply_outputs_for_state("Green")
-        self._schedule_next()
+        self._schedule(5.0, self.timer_5s)
 
     def on_enter_yellow(self) -> None:
         self._apply_outputs_for_state("Yellow")
-        self._schedule_next()
+        self._schedule(2.0, self.timer_2s)
 
     def stop(self) -> None:
         """Cancel timers and clean up GPIO."""
