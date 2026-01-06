@@ -24,6 +24,7 @@ PIN_GREEN = 24
 
 def setup_gpio() -> None:
     """Configure GPIO outputs for the three LEDs."""
+    GPIO.setwarnings(False)  # Suppress warnings about channel reuse and cleanup
     GPIO.cleanup()  # Clean up any previous GPIO state
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(PIN_RED, GPIO.OUT)
