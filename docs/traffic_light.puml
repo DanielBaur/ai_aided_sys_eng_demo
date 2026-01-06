@@ -1,0 +1,20 @@
+@startuml
+title Traffic Light State Machine
+
+[*] --> Red
+
+state Red {
+  Red : lights = [RED: ON, YELLOW: OFF, GREEN: OFF]
+  Red --> Green : timer_5s / switch_to_green
+}
+
+state Green {
+  Green : lights = [RED: OFF, YELLOW: OFF, GREEN: ON]
+  Green --> Yellow : timer_5s / switch_to_yellow
+}
+
+state Yellow {
+  Yellow : lights = [RED: OFF, YELLOW: ON, GREEN: OFF]
+  Yellow --> Red : timer_2s / switch_to_red
+}
+@enduml
