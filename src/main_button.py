@@ -96,6 +96,7 @@ class TrafficLightButtonMachine(StateMachine):
     def __init__(self) -> None:
         self._timer: Optional[threading.Timer] = None
         self._button_thread: Optional[threading.Thread] = None
+        self._button_state_thread: Optional[threading.Thread] = None
         self._lock = threading.Lock()
         self._stop_button_monitoring = threading.Event()
         setup_gpio()
@@ -113,6 +114,8 @@ class TrafficLightButtonMachine(StateMachine):
         self._stop_button_monitoring.set()
         if self._button_thread and self._button_thread.is_alive():
             self._button_thread.join(timeout=1.0)
+        if self._button_state_thread and self._button_state_thread.is_alive():
+            self._button_state_thread.join(timeout=1.0)
 
     def start_timer(self, duration: float, transition_event) -> None:
         """Start a timer that triggers the transition event after duration seconds."""
@@ -129,21 +132,33 @@ class TrafficLightButtonMachine(StateMachine):
 
     def wait_for_button_press(self, transition_event) -> None:
         """Continuously check for button press and trigger transition when pressed."""
-        self._stop_button_monitoring.clear()
         self._stop_button_monitoring_thread()  # Stop any existing button thread
+        self._stop_button_monitoring.clear()  # Clear the flag after stopping
 
         def monitor_button():
             while not self._stop_button_monitoring.is_set():
                 # Check if button is pressed (HIGH when pressed, assuming active-high)
-                if GPIO.input(PIN_BUTTON) == GPIO.HIGH:
+                button_state = GPIO.input(PIN_BUTTON)
+                if button_state == GPIO.HIGH:
                     time.sleep(0.05)  # Debounce
                     if GPIO.input(PIN_BUTTON) == GPIO.HIGH:
+                        print(f"Button pressed detected! Triggering transition...")
                         transition_event()
                         break
                 time.sleep(0.1)  # Poll every 100ms
 
         self._button_thread = threading.Thread(target=monitor_button, daemon=True)
         self._button_thread.start()
+        
+        # Start a separate thread to print button state every second for debugging
+        def print_button_state():
+            while not self._stop_button_monitoring.is_set():
+                button_state = GPIO.input(PIN_BUTTON)
+                print(f"Button pin (GPIO {PIN_BUTTON}) state: {'HIGH (pressed)' if button_state == GPIO.HIGH else 'LOW (not pressed)'}")
+                time.sleep(1.0)  # Print every second
+        
+        self._button_state_thread = threading.Thread(target=print_button_state, daemon=True)
+        self._button_state_thread.start()
 
     # State entry hooks
     def on_enter_idle(self) -> None:
@@ -155,6 +170,7 @@ class TrafficLightButtonMachine(StateMachine):
 
     def on_enter_red1(self) -> None:
         """Entry behavior for red1 state."""
+        self._stop_button_monitoring_thread()  # Stop button monitoring when leaving idle
         state_name = "red1"
         print_current_state(state_name)
         turn_on_leds(state_name)
