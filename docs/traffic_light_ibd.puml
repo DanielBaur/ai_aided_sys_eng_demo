@@ -1,0 +1,74 @@
+@startuml
+!theme plain
+skinparam componentStyle rectangle
+title Traffic Light System - Internal Block Diagram
+
+package "Traffic Light System" {
+  component RaspberryPi {
+    component "GPIO Controller" as GPIO_CTRL
+    
+    portin "GPIO18 (BCM)" as GPIO18
+    portin "GPIO23 (BCM)" as GPIO23
+    portin "GPIO24 (BCM)" as GPIO24
+    portin "GND" as GND_PI
+    
+    GPIO_CTRL --> GPIO18 : "Red LED Control"
+    GPIO_CTRL --> GPIO23 : "Yellow LED Control"
+    GPIO_CTRL --> GPIO24 : "Green LED Control"
+  }
+  
+  component "Red LED Circuit" as RedCircuit {
+    component "Resistor R1\n(220-330Ω)" as R1
+    component "Red LED" as RedLED
+    
+    R1 --> RedLED
+  }
+  
+  component "Yellow LED Circuit" as YellowCircuit {
+    component "Resistor R2\n(220-330Ω)" as R2
+    component "Yellow LED" as YellowLED
+    
+    R2 --> YellowLED
+  }
+  
+  component "Green LED Circuit" as GreenCircuit {
+    component "Resistor R3\n(220-330Ω)" as R3
+    component "Green LED" as GreenLED
+    
+    R3 --> GreenLED
+  }
+}
+
+RaspberryPi::GPIO18 --> RedCircuit::R1 : "Signal"
+RedCircuit::RedLED --> RaspberryPi::GND_PI : "Cathode (GND)"
+
+RaspberryPi::GPIO23 --> YellowCircuit::R2 : "Signal"
+YellowCircuit::YellowLED --> RaspberryPi::GND_PI : "Cathode (GND)"
+
+RaspberryPi::GPIO24 --> GreenCircuit::R3 : "Signal"
+GreenCircuit::GreenLED --> RaspberryPi::GND_PI : "Cathode (GND)"
+
+note right of RaspberryPi
+  **Software:**
+  - Python State Machine
+  - RPi.GPIO Library
+  - Automatic State Transitions:
+    Red (5s) → Green (5s) → Yellow (2s) → Red
+end note
+
+note right of RedLED
+  Anode → Resistor → GPIO18
+  Cathode → GND
+end note
+
+note right of YellowLED
+  Anode → Resistor → GPIO23
+  Cathode → GND
+end note
+
+note right of GreenLED
+  Anode → Resistor → GPIO24
+  Cathode → GND
+end note
+
+@enduml
