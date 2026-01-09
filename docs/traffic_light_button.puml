@@ -1,0 +1,49 @@
+@startuml
+title Traffic Light State Machine (Button-Triggered)
+
+[*] --> idle
+
+state idle
+state red1
+state red_yellow
+state green
+state yellow
+state red2
+
+idle --> red1 : button_pressed
+red1 --> red_yellow : timer_red1_elapsed
+red_yellow --> green : timer_red_yellow_elapsed
+green --> yellow : timer_green_elapsed
+yellow --> red2 : timer_yellow_elapsed
+red2 --> idle : timer_red2_elapsed
+
+note right of idle
+  on_entering_idle
+end note
+
+note right of red1
+  timer_red1
+  on_entering_red1
+end note
+
+note right of red_yellow
+  timer_red_yellow
+  on_entering_red_yellow
+end note
+
+note right of green
+  timer_green
+  on_entering_green
+end note
+
+note right of yellow
+  timer_yellow
+  on_entering_yellow
+end note
+
+note right of red2
+  timer_red2
+  on_entering_red2
+end note
+
+@enduml
