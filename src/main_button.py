@@ -112,10 +112,8 @@ class TrafficLightButtonMachine(StateMachine):
     def _stop_button_monitoring_thread(self) -> None:
         """Stop the button monitoring thread."""
         self._stop_button_monitoring.set()
-        if self._button_thread and self._button_thread.is_alive():
-            self._button_thread.join(timeout=1.0)
-        if self._button_state_thread and self._button_state_thread.is_alive():
-            self._button_state_thread.join(timeout=1.0)
+        # Don't join threads here - they're daemon threads and will exit when stop event is set
+        # Trying to join from within the thread itself causes a deadlock
 
     def start_timer(self, duration: float, transition_event) -> None:
         """Start a timer that triggers the transition event after duration seconds."""
@@ -143,6 +141,8 @@ class TrafficLightButtonMachine(StateMachine):
                     time.sleep(0.05)  # Debounce
                     if GPIO.input(PIN_BUTTON) == GPIO.HIGH:
                         print(f"Button pressed detected! Triggering transition...")
+                        # Set stop event before triggering transition to signal thread exit
+                        self._stop_button_monitoring.set()
                         transition_event()
                         break
                 time.sleep(0.1)  # Poll every 100ms
